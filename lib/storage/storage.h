@@ -1,0 +1,87 @@
+#pragma once
+#include <Arduino.h>
+
+#include "pins.h"
+
+/*
+self_profile.json example:
+{
+  "name": "Wolfram",
+  "species": "Samoyed",
+  "from": "Sichuan, China",
+  "links": [
+    { "platform": "telegram", "url": "https://t.me/WolframLiu" },
+    { "platform": "x",        "url": "https://x.com/WolframLiu" }
+  ],
+  "avatar_res": 64,
+  "avatar_mode": 0
+}
+uuid is not authored here; the firmware generates a random 16-hex id on first save.
+*/
+
+#define SELF_DIR "/self_profile"
+#define SELF_JSON "/self_profile/profile.json"
+#define SELF_BIN "/self_profile/avatar.bin"
+#define FRIENDS_DIR "/friends_profiles"
+// Deleted friends are moved here, not erased: /friends_deleted/<uuid>[_N]
+#define FRIENDS_DELETED_DIR "/friends_deleted"
+// Highest suffix storageArchiveProfiles tries: /self_profile_1 .. /self_profile_999
+#define ARCHIVE_MAX 999
+
+#define PATH_LEN 96
+
+#define UUID_LEN 17
+#define NAME_LEN 32
+#define SPECIES_LEN 64
+#define FROM_LEN 64
+#define PLATFORM_LEN 16
+#define URL_LEN 128
+#define LINKS_MAX 5
+#define AVATAR_LEN_MAX 4096
+
+typedef enum : uint8_t
+{
+    AVATAR_MODE_1BIT = 0,
+    AVATAR_MODE_4GRAY = 1,
+} AvatarMode;
+
+typedef struct
+{
+    char platform[PLATFORM_LEN];
+    char url[URL_LEN];
+} Link;
+
+typedef struct
+{
+    char       uuid[UUID_LEN];
+    char       name[NAME_LEN];
+    char       species[SPECIES_LEN];
+    char       from[FROM_LEN];
+    Link       links[LINKS_MAX];
+    uint8_t    linkCount;
+    uint8_t    avatarResolution;
+    AvatarMode avatarMode;
+    uint8_t    avatar[AVATAR_LEN_MAX];
+} Contact;
+
+static inline uint16_t avatarLen(uint8_t res, AvatarMode mode)
+{
+    (void)mode;
+    return ((uint16_t)res * (uint16_t)res) / 4;
+}
+
+bool storageInit(uint8_t csPin = PIN_SD_CS);
+void storageEnd(uint8_t csPin = PIN_SD_CS);
+bool storageLoadSelf(Contact &contact);
+bool storageSaveContact(const Contact &contact);
+bool storageLoadContact(int index, Contact &contact);
+bool storageLoadContactByUuid(const char *uuid, Contact &contact);
+int  storageCountContacts();
+bool storageLoadContactName(int index, char *username, int maxLen);
+bool storageDeleteContact(int index);
+
+bool storageUuidValidate(const char *s, char out[UUID_LEN]);
+bool storageReadSelfId(char out[UUID_LEN]);
+bool storageEnsureSelfId(char outId[UUID_LEN], const char *preferId = nullptr);
+void storageEnsureParentDir(const char *path);
+int  storageArchiveProfiles();

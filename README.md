@@ -31,7 +31,7 @@ It runs only the pairing path: ACOM contact handshake, BLE profile exchange, and
 | ACOM OD    | 19   |
 | ACOM PU    | 18   |
 | RGB LED    | 8    |
-| Button     | TBD  |
+| Button     | 4    |
 
 ## Test flow
 
@@ -59,7 +59,7 @@ The ACOM frame format and the BLE profile protocol match the main firmware, so t
 
 ```
 /self_profile/profile.json    test profile sent by this rig
-/self_profile/avatar.bin      test avatar (optional)
+/self_profile/avatar.bin      test avatar (required, avatar_res² / 4 bytes)
 /friends_profiles/            profiles received from peers
 ```
 
@@ -77,6 +77,16 @@ The layout matches the main firmware. Put a test profile on the card before use:
   "avatar_mode": 1
 }
 ```
+
+## Serial commands
+
+Log output and commands use the native USB port (USB CDC) at 115200 baud.
+
+| Command | Action                         |
+|---------|--------------------------------|
+| `list`  | List saved peer profiles       |
+| `self`  | Show the loaded test profile   |
+| `state` | Show the current state         |
 
 ## Build
 
